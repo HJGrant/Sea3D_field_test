@@ -1,11 +1,10 @@
-import cv2 
+#import cv2 
 import numpy as np
-from brping import Ping1D
 import datetime
 import os
 import csv
-from pinger.pinger import save_ping_data
-from video.stereo_stream import save_video, initialize_video_writer
+from functions.pinger import save_ping_data
+from functions.stereo_stream import save_video, initialize_video_writer
 
 def make_directories():
     global ping_csv
@@ -27,9 +26,9 @@ def make_directories():
     ping_csv = csv.writer(ping_writer, delimiter=';', quotechar='|', quoting=csv.QUOTE_MINIMAL)
     ping_csv.writerow(["DISTANCE", "CONFIDENCE", "TIME", "DATE"])
 
-def display_stereo_frame():
-
-    return 0
-
 make_directories()
 initialize_video_writer(data_dir)
+
+while True:
+    save_ping_data(ping_csv)
+    save_video(data_dir)    
