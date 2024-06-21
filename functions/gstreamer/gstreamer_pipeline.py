@@ -1,7 +1,7 @@
 import cv2
 print(cv2.__version__)
 
-def __gstreamer_pipeline(
+def gstreamer_pipeline(
         camera_id,
         sensor_mode=2,          #4 = 3856x2180 and 90fps; 3 = 3856 x 2180 FR = 29.999999 fps; 2 = 1928 x 1090 FR = 59.999999 fps;
         capture_width=3856,
@@ -34,8 +34,8 @@ def __gstreamer_pipeline(
 
 if __name__ == "__main__":
 
-        cam1 = cv2.VideoCapture(__gstreamer_pipeline(camera_id=0, flip_method=0), cv2.CAP_GSTREAMER)
-        cam2 = cv2.VideoCapture(__gstreamer_pipeline(camera_id=1, flip_method=0), cv2.CAP_GSTREAMER)
+        cam1 = cv2.VideoCapture(gstreamer_pipeline(camera_id=0, flip_method=0), cv2.CAP_GSTREAMER)
+        cam2 = cv2.VideoCapture(gstreamer_pipeline(camera_id=1, flip_method=0), cv2.CAP_GSTREAMER)
 
         #check if video capture object was properly initialised and able to open
         if not cam1.isOpened():
