@@ -24,8 +24,8 @@ def make_directories():
     ping_csv.writerow(["DISTANCE", "CONFIDENCE", "TIME", "DATE"])
 
     #initialise video file strings
-    left_stream = os.path.join(data_dir, 'left_stream_' + datetime.datetime.now().strftime() + '.mp4') 
-    right_stream = os.path.join(data_dir, 'right_stream_' + datetime.datetime.now().strftime() + '.mp4') 
+    left_stream = os.path.join(data_dir, 'left_stream_' + datetime.datetime.now().strftime('%d-%m-%Y_%H:%M:%S') + '.mp4') 
+    right_stream = os.path.join(data_dir, 'right_stream_' + datetime.datetime.now().strftime('%d-%m-%Y_%H:%M:%S') + '.mp4') 
 
     return ping_csv, left_stream, right_stream
 
