@@ -7,50 +7,32 @@ import queue
 
 class vStream:
     def __init__(self, src, udp_port):
-        self.capture = cv2.VideoCapture(gstreamer_pipeline(camera_id=src, flip_method=0))
-        self.width = 640
-        self.height = 320
+        self.width = 960
+        self.height = 480
+        self.capture = cv2.VideoCapture(gstreamer_pipeline(camera_id=src, flip_method=0, display_width=self.width, display_height=self.height))
         self.fps = 60
-        self.frame_queue = queue.Queue(maxsize=100)
+        #self.frame_queue = queue.Queue(maxsize=100)
         self.lock = Lock()
+        self.frame = None
 
-        self.udp_stream = cv2.VideoWriter()
-        #self.udp_stream.open(f'appsrc ! video/x-raw,format=BGR ! queue ! videoconvert ! x264enc insert-vui=1 ! h264parse ! rtph264pay config-interval=1 pt=96 ! udpsink host=192.168.194.75 port={udp_port}', cv2.CAP_GSTREAMER, 0, float(self.fps), (int(self.width),int(self.height))) 
-        self.udp_stream.open("appsrc ! video/x-raw, format=BGR ! videoconvert ! video/x-raw, format=I420 ! nvvidconv ! video/x-raw(memory:NVMM), format=NV12 ! "
-                             "nvv4l2h264enc bitrate=8000000 insert-vui=1 ! h264parse ! rtph264pay config-interval=1 pt=96 ! "
-                             f"udpsink host=192.168.194.75 port={udp_port}", cv2.CAP_GSTREAMER, 0, float(self.fps), (int(self.width),int(self.height))) 
+        self.udp_stream = cv2.VideoWriter()       
+        #in this stream we are applying CUDA accelerated vidoe encodig wih 'nvv4l2h264enc' and also accelerated scaling with nvvidconv
+        self.udp_stream.open(f'appsrc ! video/x-raw, format=BGR ! videoconvert ! video/x-raw, format=I420 ! nvvidconv ! video/x-raw(memory:NVMM),width=(int){self.width},height=(int){self.height},format=NV12 ! '
+                             'nvv4l2h264enc bitrate=8000000 insert-vui=1 ! h264parse ! rtph264pay config-interval=1 pt=96 ! '
+                             f'udpsink host=192.168.194.75 port={udp_port}', cv2.CAP_GSTREAMER, 0, float(self.fps), (int(self.width),int(self.height))) 
 
 
         self.update_thread = Thread(target=self.update, args=())
         self.update_thread.daemon=True
         self.update_thread.start()
 
-        self.stream_thread = Thread(target=self.send_to_stream, args=())
-        self.stream_thread.daemon=True
-        self.stream_thread.start()
-
     def update(self):
         while True:
-            ret, frame = self.capture.read()
-            if ret:
-                if not self.frame_queue.full():
-                    self.frame_queue.put(frame)
-    
-    def send_to_stream(self):
-        while True:
-            try:
-                frame = self.frame_queue.get_nowait()
-                frame = cv2.resize(frame, (self.width, self.height))
-                self.udp_stream.write(frame)
-            except queue.Empty:
-                pass
-
+            _, self.frame = self.capture.read()
+            self.udp_stream.write(self.frame)
+            
     def getFrame(self):
-        try:
-            frame = self.frame_queue.queue[0]  # Peek at the front of the queue without removing it
-        except IndexError:
-            frame = None
-        return frame
+        return self.frame
     
     def release(self):
         self.update_thread.join()
@@ -67,7 +49,7 @@ if __name__ == "__main__":
         while True:
             frame1 = cam1.getFrame()
             frame2 = cam2.getFrame()
-            if frame1 is not None and frame2 is not None:
+            if frame1 is not None:
                 #cv2.imshow('FRAME1', frame1)
                 #cv2.imshow('FRAME2', frame2)
                 pass
