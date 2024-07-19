@@ -1,83 +1,53 @@
-from threading import Thread, Lock
+from threading import Thread
 import cv2
 import numpy as np
-from gstreamer.gstreamer_pipeline import gstreamer_pipeline
-import datetime
-import queue
+from gstreamer.gstreamer_pipeline import gstreamer_pipeline, gstreamer_pipeline_gray8
 
 class vStream:
-    def __init__(self, src):
-        self.capture = cv2.VideoCapture(gstreamer_pipeline(camera_id=src, flip_method=0))
-        self.width = self.capture.get(cv2.CAP_PROP_FRAME_WIDTH)
-        self.height = self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
-        self.fps = 60
-        self.frame_queue = queue.Queue(maxsize=100)
-        self.lock = Lock()
+    def __init__(self, src, width, height):
+        self.capture = cv2.VideoCapture(gstreamer_pipeline(camera_id=src, display_width=width, display_height=height), cv2.CAP_GSTREAMER)
 
-        self.video_write = cv2.VideoWriter()
-        self.video_write.open("appsrc ! video/x-raw, format=(string)BGR ! "
-        "videoconvert ! video/x-raw, format=(string)I420 ! nvvidconv ! "
-        "video/x-raw(memory:NVMM), format=(string)NV12 ! nvv4l2h264enc ! h264parse "
-        "! qtmux ! filesink location=test_1.mp4", cv2.CAP_GSTREAMER, 0, float(self.fps), (int(self.width),int(self.height)))
-        
-        self.udp_stream = cv2.VideoWriter()
-        self.udp_stream.open("appsrc ! video/x-raw,format=BGR ! queue ! videoconvert ! x264enc insert-vui=1 ! h264parse ! rtph264pay ! udpsink host=192.168.194.75 port=5001", cv2.CAP_GSTREAMER, 0, float(self.fps), (int(self.width),int(self.height))) 
-        
-        self.update_thread = Thread(target=self.update, args=())
-        self.update_thread.daemon=True
-        self.update_thread.start()
-
-        self.stream_thread = Thread(target=self.send_to_stream, args=())
-        self.stream_thread.daemon=True
-        self.stream_thread.start()
+        self.thread = Thread(target=self.update, args=())
+        self.thread.daemon=True
+        self.thread.start()
 
     def update(self):
         while True:
-            ret, frame = self.capture.read()
-            if ret:
-                if not self.frame_queue.full():
-                    self.frame_queue.put(frame)
-    
-    def send_to_stream(self):
-        while True:
             try:
-                frame = self.frame_queue.get_nowait()
-                self.udp_stream.write(frame)
-                self.video_write.write(frame)
-            except queue.Empty:
-                pass
+                ret, self.frame = self.capture.read()
+            except Exception as e:
+                print(f"Could Not Capture Frame : {e}")
 
     def getFrame(self):
-        try:
-            frame = self.frame_queue.queue[0]  # Peek at the front of the queue without removing it
-        except IndexError:
-            frame = None
-        return frame
+        return self.frame
     
     def release(self):
         self.capture.release()
-        self.udp_stream.release()
-        self.video_write.release()
-    
+        self.thread.join()
+        cv2.destroyAllWindows()
+ 
 
-if __name__ == "__main__":
+width=960
+height=480
 
-    cam1 = vStream(0)
-    #cam2 = vStream(1, "/home/itr/Documents/field_test/data/frame_2.mp4")
+cam1 = vStream(0, width, height)
+cam2 = vStream(1, width, height)
+
+while True:
     try:
-        while True:
-            frame1 = cam1.getFrame()
-            if frame1 is not None:
-                cv2.imshow('FRAME', frame1)
-                pass
+        frame1 = cam1.getFrame()
+        frame2 = cam2.getFrame()
 
-            key = cv2.waitKey(1)
-            if key == ord('q'):
-                break
-        
+        stereo = np.hstack((frame1, frame2))
+        cv2.imshow("STEREO", stereo)
+
+        key = cv2.waitKey(1)
+
+        if key == ord('q'):
+            cam1.capture.release()
+            cam2.capture.release()
+            cv2.destroyAllWindows()
+            break
+
     except Exception as e:
         print(f"Could not get frame: {e}")
-
-    finally:
-        cam1.release()
-        cv2.destroyAllWindows()
