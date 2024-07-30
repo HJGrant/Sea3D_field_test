@@ -3,7 +3,7 @@ print(cv2.__version__)
 
 def gstreamer_pipeline(
         camera_id,
-        sensor_mode=0,          #4 = 3856x2180 and 90fps; 3 = 3856 x 2180 FR = 29.999999 fps; 2 = 1928 x 1090 FR = 59.999999 fps;
+        sensor_mode=2,          #4 = 3856x2180 and 90fps; 3 = 3856 x 2180 FR = 29.999999 fps; 2 = 1928 x 1090 FR = 59.999999 fps;
         capture_width=3856,
         capture_height=2180,
         display_width=1920,
@@ -20,7 +20,7 @@ def gstreamer_pipeline(
             "video/x-raw, width=(int)%d, height=(int)%d, format=(string)BGRx ! "
             "videoconvert ! "
             "video/x-raw, format=(string)BGR ! "
-            "appsink "
+            "appsink sync=true "
             % (
                     camera_id,
                     sensor_mode,
@@ -64,7 +64,7 @@ def gstreamer_pipeline_gray8(
 
 if __name__ == "__main__":
 
-        cam1 = cv2.VideoCapture(gstreamer_pipeline(camera_id=1), cv2.CAP_GSTREAMER)
+        cam1 = cv2.VideoCapture(gstreamer_pipeline(camera_id=0), cv2.CAP_GSTREAMER)
         #cam2 = cv2.VideoCapture(gstreamer_pipeline(camera_id=1, flip_method=0, display_height=320, display_width=640), cv2.CAP_GSTREAMER)
 
         #check if video capture object was properly initialised and able to open
