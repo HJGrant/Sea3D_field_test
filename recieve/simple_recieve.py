@@ -26,4 +26,4 @@ except:
 
 finally:
     cam1.release()
-    cv2.destroyAllWindow()
+    cv2.destroyAllWindows()

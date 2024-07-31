@@ -58,7 +58,8 @@ if __name__ == "__main__":
                 cv2.imshow("stereo", stereo)
 
                 if key == ord('s'):
-                    cv2.imwrite("./data/stereo_"+ datetime.datetime.now().strftime('%d-%m-%Y_%H:%M:%S') + ".jpg", stereo)
+                    cv2.imwrite("./data/stereo/left_"+ datetime.datetime.now().strftime('%d-%m-%Y_%H:%M:%S') + ".jpg", frame_left)
+                    cv2.imwrite("./data/stereo/left_"+ datetime.datetime.now().strftime('%d-%m-%Y_%H:%M:%S') + ".jpg", frame_right)
             
             if key == ord('q'):
                 break
@@ -68,4 +69,5 @@ if __name__ == "__main__":
         
     finally:    
         cam1.capture.release()
+        cam2.capture.release()
         cv2.destroyAllWindows()

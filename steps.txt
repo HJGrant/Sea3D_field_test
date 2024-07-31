@@ -1,0 +1,66 @@
+###STEP 1###
+Make sure the tether is connected to the ROV
+
+###STEP 2###
+Make sure the tether is conncted to the Laptop
+
+###STEP 3###
+Launch the QGroundControl app
+
+
+###STEP 4###
+SSH into the Orin
+
+###SETP 5###
+Make sure the cameras are running in-sync:
+sudo /usr/bin/v4l2-ctl -d /dev/video0 -c operation_mode=0 -c synchronizing_function=1
+sudo /usr/bin/v4l2-ctl -d /dev/video1 -c operation_mode=0 -c synchronizing_function=2
+
+###STEP 5###
+Mount the Orin to the laptop and check that videos are being recorded with the following command: 
+sudo sshfs -o allow_other -d -o debug itr@192.168.194.90:/mnt/orin_ssd/ ~/orin
+
+###STEP 6###
+Navigate to 
+
+/mnt/orin_ssd/workspaces/isaac_ros-dev/src/isaac_ros_common/scripts 
+
+and start the docker container with ./run_dev.sh
+
+###STEP 7###
+Source ROS2 with: source install/setup.bash
+
+
+###STEP 8###
+Navigate to : /workspaces/isaac_ros-dev/field_test_launch/
+
+run the following command: sudo chmod a+rw /dev/ttyUSB0
+
+and launch the Pinger node: ros2 launch pinger_launch.py
+
+###STEP 9###
+Open a new terminal and start the docker container again. 
+
+Source the ROS: source install/setup.bash
+
+The use: ros2 bag record -o pinger_data /pinger/pinger
+
+To record the Pinger-Data.
+
+##STEP 10###
+go to /mnt/orin_ssd/field_test and start the 'udp_stereo_stream_and_save.py' with python
+
+
+##STEP 11###
+Film the ArcoCube for some minutes from different angles
+
+
+###STEP 12###
+Keep monitoring the voltage in QGroundControl, don't let it fall below 12V!!!
+
+
+
+
+
+
+

@@ -1,0 +1,30 @@
+##IP Addresses##
+LAPTOP: 192.168.194.75
+PI/ROV:192.168.194.85
+JETSON ORIN: 192.168.194.90
+
+
+##SSH## DON'T USE X11
+#Mount Orin on Laptop
+sudo sshfs -o allow_other -d -o debug itr@192.168.194.90:/mnt/orin_ssd/ ~/orin
+
+
+###PINGER###
+#Allow docker container access to Pinger
+sudo chmod a+rw /dev/ttyUSB0
+
+
+
+##RASPBERRY PI####
+raspi-config
+
+
+###SYNC THE CAMERAS### (while SSH in Orin)
+sudo /usr/bin/v4l2-ctl -d /dev/video0 -c operation_mode=0 -c synchronizing_function=1
+sudo /usr/bin/v4l2-ctl -d /dev/video1 -c operation_mode=0 -c synchronizing_function=2
+
+
+###TURN WIFI ON AND OFF###
+nmcli radio wifi off
+
+nmcli radio wifi on
